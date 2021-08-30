@@ -14,6 +14,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class ListenRouter {
     @Bean
     public RouterFunction<ServerResponse> route(ListenHandler listenHandler) {
-        return RouterFunctions.route(GET("/listen").and(accept(MediaType.APPLICATION_JSON)), listenHandler::listen);
+        return RouterFunctions.route(GET("/listen").and(accept(MediaType.APPLICATION_JSON)),
+                listenHandler::listen);
     }
 }

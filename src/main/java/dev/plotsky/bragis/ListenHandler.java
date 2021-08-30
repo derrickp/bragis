@@ -6,24 +6,24 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @Component
 public class ListenHandler {
     public Mono<ServerResponse> listen(ServerRequest request) {
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
-                .setAccessToken("ACCESS_TOKEN_FROM_SPOTIFY")
+                .setAccessToken("BQCeLxY1Jpxm2dnT4-geQBqHZHG2vga_5WHzh0yw50nRoQfIZim" +
+                        "-5y6j7TxZiEMJkzia4avt00APU4uUNt8BXViAycO4poocxllSwz8bhBJ9yKbp" +
+                        "-Lvl7bAWfCA7kRjW3yxGjAg0-MpP-TsnM-Kpc1F3qKsJFO3yLtbgfEjO_1YO")
                 .build();
-        var recentlyPlayedTracksRequest = spotifyApi.getCurrentUsersRecentlyPlayedTracks().build();
-        var recentlyPlayedTracksFuture = recentlyPlayedTracksRequest.executeAsync();
-        var x = Mono.fromFuture(recentlyPlayedTracksFuture)
-                .map(cursor -> Arrays.stream(cursor.getItems())
-                        .map(playHistory -> new Listen(playHistory.getTrack().getName())).collect(Collectors.toList()));
+        var recentlyPlayedTracks =
+                spotifyApi.getCurrentUsersRecentlyPlayedTracks().build().executeAsync();
+        var listens = Mono.fromFuture(recentlyPlayedTracks)
+                .flatMapMany(cursor -> Flux.fromArray(cursor.getItems()))
+                .map(playHistory -> new Listen(playHistory.getTrack().getName()));
 
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                .body(x, Listen.class);
+                .body(listens, Listen.class);
     }
 }
